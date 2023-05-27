@@ -32,26 +32,55 @@ func Status() {
     os.Exit(1)
   } 
 
-  entries := handleWorktreeStatus(status)
+  entryGroups := handleWorktreeStatus(status)
 
-  for _, entry := range entries {
-    fmt.Println(entry.StatusEntryWorktree, entry.File)
+  for _, entryGroup := range entryGroups {
+    fmt.Println(entryGroup)
   }
 }
 
-func handleWorktreeStatus(status git.Status) []Entry {
-  entries := make([]Entry, 0)
+func handleWorktreeStatus(status git.Status) [][]Entry {
+  untrackeds := make([]Entry, 0)
+  modifieds := make([]Entry, 0)
+  adddeds := make([]Entry, 0)
+  unmergeds := make([]Entry, 0)
+  unknowns := make([]Entry, 0)
 
   for file, statusEntry := range status {
+    statusEntryWorktree := statusEntry.Worktree
+
     entry := Entry{
-      StatusEntryWorktree: statusEntry.Worktree,
+      StatusEntryWorktree: statusEntryWorktree,
       File:                file,
     }
 
-    entries = append(entries, entry)
+    switch statusEntryWorktree {
+    case git.Added:
+      adddeds = append(adddeds, entry)
+
+    case git.Untracked:
+      untrackeds = append(untrackeds, entry)
+
+    case git.Modified, git.Renamed, git.Copied:
+      modifieds = append(modifieds, entry)
+
+    case git.UpdatedButUnmerged:
+      unmergeds = append(unmergeds, entry)
+
+    default:
+      unknowns = append(unknowns, entry)
+    }
   }
 
-  return entries
+  entryGroups := [][]Entry{
+    untrackeds,
+    modifieds,
+    adddeds,
+    unmergeds,
+    unknowns,
+  }
+
+  return entryGroups
 }
 
 // func handleWorktreeStatus(worktreeStatus git.StatusCode) ([]string, []string) {
