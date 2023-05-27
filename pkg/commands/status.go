@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/go-git/go-git/v5"
 )
 
@@ -87,18 +88,30 @@ func HandleWorktreeStatus(status git.Status) map[string][]Entry {
 
   entryGroups := make(map[string][]Entry)
 
-  entryGroups["untrackeds"] = untrackeds
-  entryGroups["modifieds"] = modifieds
-  entryGroups["addeds"] = adddeds
-  entryGroups["unmergeds"] = unmergeds
-  entryGroups["unknowns"] = unknowns
+  entryGroups["Modifieds"] = modifieds
+  entryGroups["Untrackeds"] = untrackeds
+  entryGroups["Addeds"] = adddeds
+  entryGroups["Unmergeds"] = unmergeds
+  entryGroups["Unknowns"] = unknowns
 
   return entryGroups
 }
 
 func PrintStatus(entryGroups map[string][]Entry) {
   for key := range entryGroups {
-    fmt.Println("Key:", key, entryGroups[key])
+    if len(entryGroups[key]) == 0 { continue }
+
+    blue := color.New(color.FgBlue).SprintFunc()
+    
+    fmt.Println(fmt.Sprintf("%s\n", blue(key)))
+
+    for _, entryGroup := range entryGroups[key] {
+      red := color.New(color.FgRed).SprintFunc()
+
+      fmt.Println(red(fmt.Sprintf("%s - %s", entryGroup.StatusDescription, entryGroup.File)))
+    }
+
+    println("")
   }
 }
 
