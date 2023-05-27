@@ -83,22 +83,3 @@ func handleWorktreeStatus(status git.Status) [][]Entry {
   return entryGroups
 }
 
-// func handleWorktreeStatus(worktreeStatus git.StatusCode) ([]string, []string) {
-//   untracked := make([]string, 0)
-//   modified := make([]string, 0)
-
-//   switch worktreeStatus {
-//   case git.Added:
-//     
-
-//   case git.Modified:
-//     fmt.Println("Arquivo modificado")
-
-//   case git.Unmodified:
-//     fmt.Println("Arquivo não modificado")
-
-//   default:
-//     fmt.Println("Status desconhecido")
-//   }
-// }
-
