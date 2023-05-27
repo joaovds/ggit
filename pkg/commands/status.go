@@ -10,6 +10,7 @@ import (
 type Entry struct {
   StatusEntryWorktree git.StatusCode
   File                string
+  StatusDescription   string
 }
 
 func Status() {
@@ -32,14 +33,12 @@ func Status() {
     os.Exit(1)
   } 
 
-  entryGroups := handleWorktreeStatus(status)
+  entryGroups := HandleWorktreeStatus(status)
 
-  for _, entryGroup := range entryGroups {
-    fmt.Println(entryGroup)
-  }
+  PrintStatus(entryGroups)
 }
 
-func handleWorktreeStatus(status git.Status) [][]Entry {
+func HandleWorktreeStatus(status git.Status) map[string][]Entry {
   untrackeds := make([]Entry, 0)
   modifieds := make([]Entry, 0)
   adddeds := make([]Entry, 0)
@@ -52,34 +51,54 @@ func handleWorktreeStatus(status git.Status) [][]Entry {
     entry := Entry{
       StatusEntryWorktree: statusEntryWorktree,
       File:                file,
+      StatusDescription:   "",
     }
 
     switch statusEntryWorktree {
     case git.Added:
+      entry.StatusDescription = "Added"
       adddeds = append(adddeds, entry)
 
     case git.Untracked:
+      entry.StatusDescription = "Untracked"
       untrackeds = append(untrackeds, entry)
 
-    case git.Modified, git.Renamed, git.Copied:
+    case git.Copied:
+      entry.StatusDescription = "Copied"
+      modifieds = append(modifieds, entry)
+
+    case git.Modified:
+      entry.StatusDescription = "Modified"
+      modifieds = append(modifieds, entry)
+
+    case git.Renamed:
+      entry.StatusDescription = "Renamed"
       modifieds = append(modifieds, entry)
 
     case git.UpdatedButUnmerged:
+      entry.StatusDescription = "Unmerged"
       unmergeds = append(unmergeds, entry)
 
     default:
+      entry.StatusDescription = "Unknown"
       unknowns = append(unknowns, entry)
     }
   }
 
-  entryGroups := [][]Entry{
-    untrackeds,
-    modifieds,
-    adddeds,
-    unmergeds,
-    unknowns,
-  }
+  entryGroups := make(map[string][]Entry)
+
+  entryGroups["untrackeds"] = untrackeds
+  entryGroups["modifieds"] = modifieds
+  entryGroups["addeds"] = adddeds
+  entryGroups["unmergeds"] = unmergeds
+  entryGroups["unknowns"] = unknowns
 
   return entryGroups
+}
+
+func PrintStatus(entryGroups map[string][]Entry) {
+  for key := range entryGroups {
+    fmt.Println("Key:", key, entryGroups[key])
+  }
 }
 
